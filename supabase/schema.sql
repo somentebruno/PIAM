@@ -103,6 +103,7 @@ create table if not exists public.media_cards (
   status               card_status not null default 'draft',
   reservation_type     reservation_type,
   reservation_comment  text,
+  formats              text[] not null default '{feed}',
   created_at           timestamptz not null default now(),
   updated_at           timestamptz not null default now()
 );

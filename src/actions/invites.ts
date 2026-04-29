@@ -32,6 +32,32 @@ export async function createInviteAction(
 
   if (!email || !role) return { error: 'Preencha todos os campos.', token: null }
 
+  const adminClient = createAdminClient()
+
+  // 1. Verifica se o usuário já possui um perfil ativo (Busca Global)
+  const { data: existingProfile } = await adminClient
+    .from('profiles')
+    .select('id')
+    .eq('email', email)
+    .maybeSingle()
+
+  if (existingProfile) {
+    return { error: 'Este e-mail já possui uma conta ativa no portal.', token: null }
+  }
+
+  // 2. Verifica se já existe QUALQUER convite pendente para este e-mail (Busca Global)
+  const { data: existingInvite } = await adminClient
+    .from('invites')
+    .select('token')
+    .eq('email', email)
+    .is('used_at', null)
+    .maybeSingle()
+
+  if (existingInvite) {
+    revalidatePath('/admin/invites')
+    return { error: null, token: existingInvite.token }
+  }
+
   const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString()
 
   const { data, error } = await supabase
@@ -84,7 +110,7 @@ export async function acceptInviteAction(
     return { error: createError.message }
   }
 
-  await supabase
+  await adminClient
     .from('invites')
     .update({ used_at: new Date().toISOString() })
     .eq('token', token)
@@ -97,4 +123,24 @@ export async function acceptInviteAction(
   if (signInError) return { error: 'Conta criada. Faça login para continuar.' }
 
   redirect('/dashboard')
+}
+
+export async function deleteInviteAction(inviteId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autorizado.' }
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') return { error: 'Permissão negada.' }
+
+  const { error } = await supabase.from('invites').delete().eq('id', inviteId)
+  if (error) return { error: 'Erro ao excluir convite.' }
+
+  revalidatePath('/admin/invites')
+  return { error: null }
 }

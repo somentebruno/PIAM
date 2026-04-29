@@ -1,28 +1,44 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { 
   MoreHorizontal, Heart, MessageCircle, Send, Bookmark, ShieldCheck, 
-  Wifi, Battery, Signal, User, Music
+  Wifi, Battery, Signal, User, Music, ChevronLeft, ChevronRight
 } from 'lucide-react'
 
-type Format = 'feed' | 'story' | 'reels'
+type Format = 'feed' | 'story' | 'reels' | 'carousel'
 
 type Props = {
   mediaUrl: string
   mediaType: 'image' | 'video'
   caption: string
+  allowedFormats?: string[]
+  mediaItems?: { storage_path: string; media_type: 'image' | 'video' }[]
 }
 
-export function InstagramMockup({ mediaUrl, mediaType, caption }: Props) {
-  const [format, setFormat] = useState<Format>('feed')
-
-  const formats: { id: Format; label: string }[] = [
+export function InstagramMockup({ mediaUrl, mediaType, caption, allowedFormats, mediaItems }: Props) {
+  const allFormats: { id: Format; label: string }[] = [
     { id: 'feed', label: 'Feed' },
+    { id: 'carousel', label: 'Carrossel' },
     { id: 'story', label: 'Story' },
     { id: 'reels', label: 'Reels' },
   ]
+
+  // Filtra os formatos baseados no que foi definido no card
+  const formats = allowedFormats && allowedFormats.length > 0
+    ? allFormats.filter(f => allowedFormats.includes(f.id))
+    : allFormats
+
+  const [format, setFormat] = useState<Format>(formats[0]?.id || 'feed')
+
+  // Garante que o estado 'format' seja resetado se os formatos permitidos mudarem
+  // e o formato atual não estiver mais na lista.
+  useEffect(() => {
+    if (formats.length > 0 && !formats.find(f => f.id === format)) {
+      setFormat(formats[0].id)
+    }
+  }, [formats, format])
 
   return (
     <div className="flex flex-col items-center py-12 px-4 bg-gray-50/20 rounded-[3rem] border border-gray-100/50 shadow-inner relative overflow-hidden group">
@@ -86,8 +102,14 @@ export function InstagramMockup({ mediaUrl, mediaType, caption }: Props) {
 
               {/* Layout Content */}
               <div className="h-full pt-14 overflow-hidden">
-                {format === 'feed' && (
-                  <FeedLayout mediaUrl={mediaUrl} mediaType={mediaType} caption={caption} />
+                {(format === 'feed' || format === 'carousel') && (
+                  <FeedLayout 
+                    mediaUrl={mediaUrl} 
+                    mediaType={mediaType} 
+                    caption={caption} 
+                    mediaItems={mediaItems}
+                    isCarousel={format === 'carousel'} 
+                  />
                 )}
                 {format === 'story' && (
                   <StoryLayout mediaUrl={mediaUrl} mediaType={mediaType} />
@@ -117,7 +139,47 @@ export function InstagramMockup({ mediaUrl, mediaType, caption }: Props) {
   )
 }
 
-function FeedLayout({ mediaUrl, mediaType, caption }: Props) {
+function FeedLayout({ mediaUrl, mediaType, caption, mediaItems, isCarousel }: Props & { isCarousel?: boolean }) {
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [startX, setStartX] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState(0)
+
+  const items = isCarousel && mediaItems && mediaItems.length > 0 
+    ? mediaItems 
+    : [{ storage_path: mediaUrl, media_type: mediaType }]
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (items.length <= 1) return
+    setIsDragging(true)
+    setStartX(e.clientX)
+    setDragOffset(0)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    const currentX = e.clientX
+    const diff = currentX - startX
+    setDragOffset(diff)
+  }
+
+  const handleMouseUp = () => {
+    if (!isDragging) return
+    setIsDragging(false)
+    
+    const threshold = 60 // px
+    if (dragOffset < -threshold && currentIndex < items.length - 1) {
+      setCurrentIndex(prev => prev + 1)
+    } else if (dragOffset > threshold && currentIndex > 0) {
+      setCurrentIndex(prev => prev - 1)
+    }
+    setDragOffset(0)
+  }
+
+  const handleMouseLeave = () => {
+    if (isDragging) handleMouseUp()
+  }
+
   return (
     <div className="h-full overflow-y-auto no-scrollbar pb-12">
       {/* Instagram Header */}
@@ -141,27 +203,92 @@ function FeedLayout({ mediaUrl, mediaType, caption }: Props) {
         <MoreHorizontal size={20} className="text-gray-400" />
       </div>
 
-      {/* Content Area */}
-      <div className="bg-[#fafafa] relative overflow-hidden aspect-square">
-        <Media url={mediaUrl} type={mediaType} className="w-full h-full object-cover" />
+      {/* Content Area (Carousel Support with Mouse Drag) */}
+      <div 
+        className={cn(
+          "bg-[#fafafa] relative overflow-hidden aspect-square group/carousel",
+          items.length > 1 ? "cursor-grab active:cursor-grabbing" : ""
+        )}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div 
+          className={cn(
+            "flex h-full",
+            !isDragging && "transition-transform duration-500 ease-out"
+          )}
+          style={{ 
+            transform: `translateX(calc(-${currentIndex * 100}% + ${dragOffset}px))` 
+          }}
+        >
+          {items.map((item, i) => (
+            <div key={i} className="min-w-full h-full select-none">
+              <Media url={item.storage_path} type={item.media_type} className="w-full h-full object-cover pointer-events-none" />
+            </div>
+          ))}
+        </div>
+
+        {/* Navigation Arrows (Visible on hover) */}
+        {items.length > 1 && (
+          <>
+            {currentIndex > 0 && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(prev => prev - 1) }}
+                className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/10 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity border border-white/10 hover:bg-black/20"
+              >
+                <ChevronLeft size={18} />
+              </button>
+            )}
+            {currentIndex < items.length - 1 && (
+              <button 
+                onClick={(e) => { e.stopPropagation(); setCurrentIndex(prev => prev + 1) }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/10 backdrop-blur-md text-white flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-opacity border border-white/10 hover:bg-black/20"
+              >
+                <ChevronRight size={18} />
+              </button>
+            )}
+          </>
+        )}
       </div>
 
-      {/* Footer UI */}
-      <div className="p-5 space-y-4 bg-white">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-5">
-            <Heart size={28} className="text-gray-900" />
-            <MessageCircle size={28} className="text-gray-900" />
-            <Send size={28} className="text-gray-900" />
+      {/* Carousel Dots - Positioned between image and buttons */}
+      {items.length > 1 && (
+        <div className="flex justify-center pt-3 pb-1 bg-white">
+          <div className="flex gap-1.5">
+            {items.map((_, i) => (
+              <div 
+                key={i} 
+                className={cn(
+                  "w-1.5 h-1.5 rounded-full transition-all duration-300",
+                  currentIndex === i ? "bg-[#0095f6]" : "bg-[#dbdbdb]"
+                )}
+              />
+            ))}
           </div>
-          <Bookmark size={28} className="text-gray-900" />
         </div>
-        <div className="space-y-1.5">
-          <p className="text-[14px] font-bold text-gray-900">1.240 curtidas</p>
-          <div className="text-[14px] leading-[1.5] text-gray-800">
-            <span className="font-bold mr-2 text-gray-900">saudedigitalmt</span>
+      )}
+
+      {/* Footer UI */}
+      <div className="px-4 py-3 space-y-2.5 bg-white">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Heart size={24} className="text-gray-900" />
+            <MessageCircle size={24} className="text-gray-900" />
+            <Send size={24} className="text-gray-900" />
+          </div>
+          
+          <Bookmark size={24} className="text-gray-900" />
+        </div>
+        
+        <div className="space-y-1">
+          <p className="text-[13px] font-bold text-gray-900">1.240 curtidas</p>
+          <div className="text-[13px] leading-[1.4] text-gray-800">
+            <span className="font-bold mr-1.5 text-gray-900">saudedigitalmt</span>
             <span className="whitespace-pre-wrap">{caption || 'Aguardando legenda...'}</span>
           </div>
+          <p className="text-[11px] text-gray-400 uppercase mt-1 tracking-tight font-medium">Há 2 horas</p>
         </div>
       </div>
     </div>

@@ -10,7 +10,7 @@ const initial: ApprovalState = { error: null }
 type Props = {
   cardId: string
   reservationType: ReservationType | null
-  hasNewVersion: boolean // true se foi feito upload após a ressalva
+  hasNewVersion: boolean
 }
 
 export function CreatorFixPanel({ cardId, reservationType, hasNewVersion }: Props) {
@@ -22,7 +22,7 @@ export function CreatorFixPanel({ cardId, reservationType, hasNewVersion }: Prop
 
   if (captionState.success || resubmitState.success) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-semibold">
         {captionState.success ? 'Legenda corrigida — card aprovado!' : 'Card reenviado para aprovação!'}
       </div>
     )
@@ -30,9 +30,8 @@ export function CreatorFixPanel({ cardId, reservationType, hasNewVersion }: Prop
 
   return (
     <div className="space-y-3">
-      {/* RN03 — Caminho 1: só legenda → vai direto para aprovado */}
       {isCaptionOnly && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-3">
+        <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 space-y-3">
           <p className="text-sm text-blue-800">
             Edite a legenda no formulário acima e clique em <strong>Salvar alterações</strong>. Depois confirme aqui:
           </p>
@@ -48,9 +47,8 @@ export function CreatorFixPanel({ cardId, reservationType, hasNewVersion }: Prop
         </div>
       )}
 
-      {/* RN03 — Caminho 2: envolve mídia → reenviar para aprovação */}
       {involvesMedia && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 space-y-3">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 space-y-3">
           <p className="text-sm text-amber-800">
             Faça o upload da nova mídia usando a zona de upload acima e depois reenvie para aprovação.
           </p>

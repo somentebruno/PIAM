@@ -29,12 +29,12 @@ export function AcceptInviteForm({ token, email, role }: Props) {
 
       <div className="space-y-1.5">
         <Label>E-mail</Label>
-        <Input value={email} disabled className="bg-gray-50 text-gray-500" readOnly />
+        <Input value={email} disabled className="bg-stone-50 text-stone-500" readOnly />
       </div>
 
       <div className="space-y-1.5">
         <Label>Perfil</Label>
-        <Input value={roleLabels[role] ?? role} disabled className="bg-gray-50 text-gray-500" readOnly />
+        <Input value={roleLabels[role] ?? role} disabled className="bg-stone-50 text-stone-500" readOnly />
       </div>
 
       <div className="space-y-1.5">

@@ -33,14 +33,14 @@ export default async function EditCardPage({ params }: Props) {
 
   if (!card) notFound()
 
-  // Criador só acessa os próprios cards
   if (profile?.role === 'creator' && card.creator_id !== user.id) redirect('/dashboard')
 
   const { data: versionsData } = await supabase
     .from('media_versions')
-    .select('*')
+    .select('*, items:media_items(*)')
     .eq('card_id', id)
     .order('version_number', { ascending: false })
+    .order('order_index', { foreignTable: 'media_items', ascending: true })
 
   const versions = versionsData ?? []
   const latestVersion = versions[0] ?? null
@@ -61,21 +61,31 @@ export default async function EditCardPage({ params }: Props) {
     card.status === 'rejected'
 
   return (
-    <div className="max-w-4xl space-y-6">
+    <div className="max-w-4xl space-y-5">
+      {/* Page header */}
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{card.title}</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {canEdit ? 'Edite os campos e salve as alterações.' : 'Visualização do card.'}
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest mb-1">
+            {canEdit ? 'Edição' : 'Visualização'}
           </p>
+          <h1 className="text-2xl font-semibold text-stone-900 tracking-tight leading-snug truncate">
+            {card.title}
+          </h1>
         </div>
         <StatusBadge status={card.status} className="shrink-0 mt-1" />
       </div>
 
+      {/* Approval actions banner */}
       {profile?.role !== 'creator' && card.status === 'awaiting_approval' && (
-        <ApprovalActions cardId={card.id} />
+        <div className="bg-white rounded-2xl shadow-card p-5">
+          <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest mb-3">
+            Ações de aprovação
+          </p>
+          <ApprovalActions cardId={card.id} />
+        </div>
       )}
 
+      {/* Export actions */}
       {(card.status === 'approved' || card.status === 'published') && latestVersion && (
         <ExportActions
           cardId={card.id}
@@ -86,21 +96,28 @@ export default async function EditCardPage({ params }: Props) {
         />
       )}
 
+      {/* Reservation comment */}
       {card.reservation_comment && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 space-y-1">
-          <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide">
+        <div className="bg-white rounded-2xl shadow-card border-l-4 border-amber-400 px-5 py-4 space-y-1">
+          <p className="text-[11px] font-semibold text-amber-600 uppercase tracking-widest">
             Ressalva do aprovador
           </p>
-          <p className="text-sm text-amber-800">{card.reservation_comment}</p>
+          <p className="text-sm text-stone-700 mt-1">{card.reservation_comment}</p>
           {card.reservation_type && (
-            <p className="text-xs text-amber-600">
-              Tipo: {card.reservation_type === 'caption' ? 'Legenda' : card.reservation_type === 'media' ? 'Mídia' : 'Legenda e Mídia'}
+            <p className="text-xs text-stone-400 mt-1">
+              Tipo:{' '}
+              {card.reservation_type === 'caption'
+                ? 'Legenda'
+                : card.reservation_type === 'media'
+                ? 'Mídia'
+                : 'Legenda e Mídia'}
             </p>
           )}
         </div>
       )}
 
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+      {/* Card form */}
+      <div className="bg-white rounded-2xl shadow-card p-6">
         <CardForm
           mode="edit"
           card={card as MediaCard}
@@ -108,14 +125,20 @@ export default async function EditCardPage({ params }: Props) {
         />
       </div>
 
+      {/* Version comparison */}
       {versions && versions.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
-          <VersionComparison versions={versions as MediaVersion[]} caption={card.caption} />
+        <div className="bg-white rounded-2xl shadow-card p-6">
+          <VersionComparison
+            versions={versions as MediaVersion[]}
+            caption={card.caption}
+            allowedFormats={card.formats}
+          />
         </div>
       )}
 
+      {/* Audit timeline */}
       {auditLogs && auditLogs.length > 0 && (
-        <div className="bg-white rounded-2xl border border-gray-200 p-6">
+        <div className="bg-white rounded-2xl shadow-card p-6">
           <TimelineAuditoria logs={auditLogs as any[]} />
         </div>
       )}

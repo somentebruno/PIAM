@@ -19,6 +19,7 @@ export async function createCardAction(
   const tagsRaw = (formData.get('tags') as string | null)?.trim() ?? ''
   const accountsRaw = (formData.get('tagged_accounts') as string | null)?.trim() ?? ''
   const suggestedAt = (formData.get('suggested_at') as string | null) || null
+  const formats = formData.getAll('formats') as string[]
 
   if (!title) return { error: 'O título é obrigatório.' }
 
@@ -34,12 +35,13 @@ export async function createCardAction(
       tags,
       tagged_accounts: taggedAccounts,
       suggested_at: suggestedAt,
+      formats: formats.length > 0 ? formats : ['feed'],
       status: 'draft',
     })
     .select('id')
     .single()
 
-  if (error) return { error: 'Erro ao criar o card. Tente novamente.' }
+  if (error) return { error: `Erro ao criar o card: ${error.message}` }
 
   await supabase.from('audit_logs').insert({
     card_id: card.id,
@@ -66,12 +68,13 @@ export async function updateCardAction(
   const tagsRaw = (formData.get('tags') as string | null)?.trim() ?? ''
   const accountsRaw = (formData.get('tagged_accounts') as string | null)?.trim() ?? ''
   const suggestedAt = (formData.get('suggested_at') as string | null) || null
+  const formats = formData.getAll('formats') as string[]
 
   if (!title) return { error: 'O título é obrigatório.' }
 
   const { data: existing } = await supabase
     .from('media_cards')
-    .select('creator_id, status')
+    .select('creator_id, status, reservation_type')
     .eq('id', cardId)
     .single()
 
@@ -85,7 +88,7 @@ export async function updateCardAction(
   const taggedAccounts = accountsRaw ? accountsRaw.split(',').map((a) => a.trim()).filter(Boolean) : []
 
   // RN03: Se a ressalva for só de Legenda, Criador pode editar e avança direto para Aprovado
-  let status = existing.status
+  let status: string = existing.status
   if (existing.status === 'approved_with_reservations' && existing.reservation_type === 'caption') {
     status = 'approved'
   }
@@ -98,11 +101,12 @@ export async function updateCardAction(
       tags, 
       tagged_accounts: taggedAccounts, 
       suggested_at: suggestedAt,
+      formats: formats.length > 0 ? formats : ['feed'],
       status
     })
     .eq('id', cardId)
 
-  if (error) return { error: 'Erro ao salvar. Tente novamente.' }
+  if (error) return { error: `Erro ao salvar: ${error.message}` }
 
   if (status !== existing.status) {
     await supabase.from('audit_logs').insert({
@@ -240,7 +244,14 @@ export async function rejectCardAction(
   return { error: null }
 }
 
-export async function recordMediaUploadAction(cardId: string, data: { path: string, type: 'image' | 'video' }) {
+export async function recordMediaUploadAction(
+  cardId: string, 
+  data: { 
+    path: string, 
+    type: 'image' | 'video',
+    items?: { path: string, type: 'image' | 'video' }[]
+  }
+) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Não autorizado.' }
@@ -264,12 +275,31 @@ export async function recordMediaUploadAction(cardId: string, data: { path: stri
   const nextVersion = (versions?.[0]?.version_number ?? 0) + 1
 
   // Inserir versão
-  await supabase.from('media_versions').insert({
-    card_id: cardId,
-    storage_path: data.path,
-    media_type: data.type,
-    version_number: nextVersion,
-  })
+  const { data: version, error: vError } = await supabase
+    .from('media_versions')
+    .insert({
+      card_id: cardId,
+      storage_path: data.path,
+      media_type: data.type,
+      version_number: nextVersion,
+    })
+    .select('id')
+    .single()
+
+  if (vError) return { error: `Erro ao criar versão: ${vError.message}` }
+
+  // Se for carrossel, inserir itens
+  if (data.items && data.items.length > 0) {
+    const itemsToInsert = data.items.map((item, index) => ({
+      version_id: version.id,
+      storage_path: item.path,
+      media_type: item.type,
+      order_index: index,
+    }))
+
+    const { error: iError } = await supabase.from('media_items').insert(itemsToInsert)
+    if (iError) return { error: `Erro ao salvar itens do carrossel: ${iError.message}` }
+  }
 
   // RN03: Se envolver Mídia, volta para Aguardando Aprovação após novo upload
   const needsStatusUpdate = card.status === 'approved_with_reservations' || card.status === 'rejected'
@@ -288,8 +318,9 @@ export async function recordMediaUploadAction(cardId: string, data: { path: stri
     action: needsStatusUpdate ? 'awaiting_approval' : 'media_uploaded',
     details: { 
       version: nextVersion,
+      is_carousel: !!data.items?.length,
+      item_count: data.items?.length ?? 1,
       previous_status: card.status,
-      note: needsStatusUpdate ? 'Transição automática (RN03 - Nova Mídia)' : 'Novo upload de mídia'
     },
   })
 
@@ -328,6 +359,34 @@ export async function publishCardAction(cardId: string) {
   })
 
   revalidatePath(`/cards/${cardId}/edit`)
+  revalidatePath('/dashboard')
+  return { error: null }
+}
+
+export async function deleteCardAction(cardId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Não autorizado.' }
+
+  const { data: card } = await supabase
+    .from('media_cards')
+    .select('creator_id, status')
+    .eq('id', cardId)
+    .single()
+
+  if (!card) return { error: 'Card não encontrado.' }
+  
+  const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
+  const isAdmin = profile?.role === 'admin'
+  const isOwner = card.creator_id === user.id
+
+  if (!isAdmin && !isOwner) return { error: 'Sem permissão.' }
+  
+  if (card.status === 'published' && !isAdmin) return { error: 'Cards publicados não podem ser excluídos.' }
+
+  const { error } = await supabase.from('media_cards').delete().eq('id', cardId)
+  if (error) return { error: `Erro ao deletar: ${error.message}` }
+
   revalidatePath('/dashboard')
   return { error: null }
 }

@@ -1,43 +1,56 @@
 @import "tailwindcss";
 
 @theme inline {
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-dm-sans);
+  --font-display: var(--font-instrument-serif);
 
-  /* Neutros */
-  --color-background: #ffffff;
-  --color-surface: #f9fafb;
-  --color-border: #e5e7eb;
-  --color-text-primary: #111827;
-  --color-text-secondary: #6b7280;
-  --color-text-muted: #9ca3af;
+  /* Warm stone palette */
+  --color-background: #f7f6f3;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #faf9f7;
+  --color-border: #e8e5e0;
+  --color-border-subtle: #f0eee9;
+
+  /* Text — warm, not cold */
+  --color-text-primary: #1c1917;
+  --color-text-secondary: #78716c;
+  --color-text-muted: #a8a29e;
+
+  /* Primary CTA */
+  --color-primary: #1c1917;
+  --color-primary-hover: #000000;
 
   /* Status */
-  --color-draft: #6b7280;
+  --color-draft: #78716c;
   --color-awaiting: #d97706;
-  --color-approved-reservations: #f59e0b;
-  --color-rejected: #ef4444;
-  --color-approved: #10b981;
-  --color-published: #3b82f6;
-
-  /* CTAs */
-  --color-primary: #111827;
-  --color-primary-hover: #1f2937;
+  --color-approved-reservations: #ca8a04;
+  --color-rejected: #dc2626;
+  --color-approved: #059669;
+  --color-published: #2563eb;
 }
 
-html {
-  scroll-behavior: smooth;
+/* Custom shadow utilities */
+@utility shadow-card {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+@utility shadow-card-hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+@utility shadow-card-elevated {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-text-primary);
+  background: #f7f6f3;
+  color: #1c1917;
   font-family: var(--font-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
-  background-color: var(--color-primary);
-  color: white;
+  background-color: #1c1917;
+  color: #ffffff;
 }

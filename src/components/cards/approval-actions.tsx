@@ -46,83 +46,73 @@ export function ApprovalActions({ cardId }: Props) {
 
   if (showRejectForm) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-4 animate-in fade-in slide-in-from-top-2">
-        <h3 className="text-sm font-semibold text-gray-900">
+      <form onSubmit={handleRejectSubmit} className="space-y-4 animate-in fade-in slide-in-from-top-2">
+        <h3 className="text-sm font-semibold text-stone-900">
           {rejectType === 'rejected' ? 'Reprovar card' : 'Aprovar com ressalvas'}
         </h3>
-        
-        <form onSubmit={handleRejectSubmit} className="space-y-4">
+
+        <div className="space-y-1.5">
+          <Label htmlFor="comment">Justificativa (obrigatória)</Label>
+          <textarea
+            id="comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            rows={3}
+            placeholder="Descreva o que precisa ser ajustado..."
+            className="flex w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900/20 focus-visible:border-stone-400 resize-none transition-colors"
+          />
+        </div>
+
+        {rejectType === 'approved_with_reservations' && (
           <div className="space-y-2">
-            <Label htmlFor="comment">Justificativa (obrigatória)</Label>
-            <textarea
-              id="comment"
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={3}
-              placeholder="Descreva o que precisa ser ajustado..."
-              className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:border-transparent resize-none"
-            />
-          </div>
-
-          {rejectType === 'approved_with_reservations' && (
-            <div className="space-y-2">
-              <Label>O que precisa de ajuste?</Label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+            <Label>O que precisa de ajuste?</Label>
+            <div className="flex gap-4">
+              {[
+                { value: 'caption', label: 'Legenda' },
+                { value: 'media', label: 'Mídia' },
+                { value: 'both', label: 'Ambos' },
+              ].map((opt) => (
+                <label key={opt.value} className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer hover:text-stone-900 transition-colors">
                   <input
                     type="radio"
-                    checked={reservationType === 'caption'}
-                    onChange={() => setReservationType('caption')}
-                    className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
+                    checked={reservationType === opt.value}
+                    onChange={() => setReservationType(opt.value as typeof reservationType)}
+                    className="w-4 h-4 text-stone-900 border-stone-300 focus:ring-stone-900/20"
                   />
-                  Legenda
+                  {opt.label}
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={reservationType === 'media'}
-                    onChange={() => setReservationType('media')}
-                    className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
-                  />
-                  Mídia
-                </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input
-                    type="radio"
-                    checked={reservationType === 'both'}
-                    onChange={() => setReservationType('both')}
-                    className="w-4 h-4 text-gray-900 border-gray-300 focus:ring-gray-900"
-                  />
-                  Ambos
-                </label>
-              </div>
+              ))}
             </div>
-          )}
-
-          {error && <p className="text-xs text-red-600">{error}</p>}
-
-          <div className="flex gap-2">
-            <Button type="submit" disabled={isPending}>
-              Confirmar
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowRejectForm(false)}
-              disabled={isPending}
-            >
-              Cancelar
-            </Button>
           </div>
-        </form>
-      </div>
+        )}
+
+        {error && <p className="text-xs text-red-600">{error}</p>}
+
+        <div className="flex gap-2">
+          <Button type="submit" disabled={isPending}>
+            Confirmar
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowRejectForm(false)}
+            disabled={isPending}
+          >
+            Cancelar
+          </Button>
+        </div>
+      </form>
     )
   }
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <Button onClick={handleApprove} disabled={isPending} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+      <div className="flex items-center flex-wrap gap-2">
+        <Button
+          onClick={handleApprove}
+          disabled={isPending}
+          className="bg-emerald-600 hover:bg-emerald-700 text-white border-0 shadow-sm"
+        >
           Aprovar card
         </Button>
         <Button
@@ -132,7 +122,7 @@ export function ApprovalActions({ cardId }: Props) {
             setShowRejectForm(true)
           }}
           disabled={isPending}
-          className="text-amber-600 border-amber-200 hover:bg-amber-50"
+          className="text-amber-700 border-amber-200 bg-amber-50 hover:bg-amber-100 hover:border-amber-300"
         >
           Aprovar com ressalvas
         </Button>
@@ -143,7 +133,7 @@ export function ApprovalActions({ cardId }: Props) {
             setShowRejectForm(true)
           }}
           disabled={isPending}
-          className="text-red-600 border-red-200 hover:bg-red-50"
+          className="text-red-700 border-red-200 bg-red-50 hover:bg-red-100 hover:border-red-300"
         >
           Reprovar
         </Button>

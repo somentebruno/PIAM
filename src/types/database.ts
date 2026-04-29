@@ -40,6 +40,7 @@ export type Database = {
           status: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
           reservation_type: 'caption' | 'media' | 'both' | null
           reservation_comment: string | null
+          formats: string[]
           created_at: string
           updated_at: string
         }
@@ -54,6 +55,7 @@ export type Database = {
           status?: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
           reservation_type?: 'caption' | 'media' | 'both' | null
           reservation_comment?: string | null
+          formats?: string[]
           created_at?: string
           updated_at?: string
         }
@@ -68,6 +70,7 @@ export type Database = {
           status?: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
           reservation_type?: 'caption' | 'media' | 'both' | null
           reservation_comment?: string | null
+          formats?: string[]
           created_at?: string
           updated_at?: string
         }
@@ -201,4 +204,17 @@ export type AuditLogInsert = Database['public']['Tables']['audit_logs']['Insert'
 export type Invite = Database['public']['Tables']['invites']['Row']
 export type InviteInsert = Database['public']['Tables']['invites']['Insert']
 
-export type InstagramFormat = 'feed' | 'story' | 'reels'
+export type InstagramFormat = 'feed' | 'story' | 'reels' | 'carousel'
+
+export interface MediaItem {
+  id: string
+  version_id: string
+  storage_path: string
+  media_type: 'image' | 'video'
+  order_index: number
+}
+
+// Estendendo o tipo gerado para incluir os itens do carrossel
+export type MediaVersion = Database['public']['Tables']['media_versions']['Row'] & {
+  items?: MediaItem[]
+}

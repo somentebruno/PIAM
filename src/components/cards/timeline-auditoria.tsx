@@ -1,11 +1,11 @@
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { 
-  PlusCircle, 
-  Send, 
-  CheckCircle2, 
-  AlertCircle, 
-  XCircle, 
+import {
+  PlusCircle,
+  Send,
+  CheckCircle2,
+  AlertCircle,
+  XCircle,
   UploadCloud,
   ArrowRight
 } from 'lucide-react'
@@ -24,56 +24,58 @@ type Props = {
   logs: AuditLog[]
 }
 
-const ACTION_MAP: Record<string, { label: string; icon: any; color: string }> = {
-  card_created: { label: 'Card criado', icon: PlusCircle, color: 'text-gray-500' },
-  submitted_for_approval: { label: 'Enviado para aprovação', icon: Send, color: 'text-blue-500' },
-  approved: { label: 'Aprovado', icon: CheckCircle2, color: 'text-emerald-500' },
-  approved_with_reservations: { label: 'Aprovado com ressalvas', icon: AlertCircle, color: 'text-amber-500' },
-  rejected: { label: 'Reprovado', icon: XCircle, color: 'text-rose-500' },
-  media_uploaded: { label: 'Nova mídia enviada', icon: UploadCloud, color: 'text-gray-500' },
-  awaiting_approval: { label: 'Retornou para aprovação', icon: ArrowRight, color: 'text-blue-500' },
+const ACTION_MAP: Record<string, { label: string; icon: any; iconClass: string; dotClass: string }> = {
+  card_created: { label: 'Card criado', icon: PlusCircle, iconClass: 'text-stone-400', dotClass: 'bg-stone-100 ring-2 ring-white' },
+  submitted_for_approval: { label: 'Enviado para aprovação', icon: Send, iconClass: 'text-blue-500', dotClass: 'bg-blue-50 ring-2 ring-white' },
+  approved: { label: 'Aprovado', icon: CheckCircle2, iconClass: 'text-emerald-500', dotClass: 'bg-emerald-50 ring-2 ring-white' },
+  approved_with_reservations: { label: 'Aprovado com ressalvas', icon: AlertCircle, iconClass: 'text-amber-500', dotClass: 'bg-amber-50 ring-2 ring-white' },
+  rejected: { label: 'Reprovado', icon: XCircle, iconClass: 'text-red-500', dotClass: 'bg-red-50 ring-2 ring-white' },
+  media_uploaded: { label: 'Nova mídia enviada', icon: UploadCloud, iconClass: 'text-stone-400', dotClass: 'bg-stone-100 ring-2 ring-white' },
+  awaiting_approval: { label: 'Retornou para aprovação', icon: ArrowRight, iconClass: 'text-blue-500', dotClass: 'bg-blue-50 ring-2 ring-white' },
 }
 
 export function TimelineAuditoria({ logs }: Props) {
   if (!logs || logs.length === 0) return null
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-semibold text-gray-900 px-1">Histórico de Atividade</h3>
-      
-      <div className="relative space-y-6 before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-0.5 before:bg-gray-100">
+    <div className="space-y-5">
+      <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest">
+        Histórico de Atividade
+      </p>
+
+      <div className="relative space-y-6 before:absolute before:inset-0 before:ml-[15px] before:-translate-x-px before:h-full before:w-px before:bg-stone-100">
         {logs.map((log) => {
-          const config = ACTION_MAP[log.action] || { label: log.action, icon: AlertCircle, color: 'text-gray-400' }
+          const config = ACTION_MAP[log.action] || { label: log.action, icon: AlertCircle, iconClass: 'text-stone-400', dotClass: 'bg-stone-100 ring-2 ring-white' }
           const Icon = config.icon
 
           return (
-            <div key={log.id} className="relative flex items-start gap-4 animate-in fade-in slide-in-from-left-2">
-              <div className={`absolute left-0 w-8 h-8 rounded-full bg-white border-2 border-gray-50 flex items-center justify-center z-10 ${config.color}`}>
-                <Icon size={14} />
+            <div key={log.id} className="relative flex items-start gap-4">
+              <div className={`relative z-10 flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${config.dotClass}`}>
+                <Icon size={14} className={config.iconClass} />
               </div>
-              
-              <div className="ml-10 pt-0.5">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
-                  <span className="text-sm font-medium text-gray-900">{config.label}</span>
-                  <span className="text-xs text-gray-400">
+
+              <div className="min-w-0 flex-1 pt-1">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3">
+                  <span className="text-sm font-semibold text-stone-900">{config.label}</span>
+                  <span className="text-xs text-stone-400 font-medium">
                     {format(new Date(log.created_at), "dd 'de' MMM 'às' HH:mm", { locale: ptBR })}
                   </span>
                 </div>
-                
-                <p className="text-xs text-gray-500 mt-0.5">
-                  por <span className="font-medium text-gray-700">{log.profiles.name}</span>
+
+                <p className="text-xs text-stone-400 mt-0.5">
+                  por <span className="font-semibold text-stone-600">{log.profiles?.name || 'Sistema'}</span>
                 </p>
 
                 {log.details?.comment && (
-                  <div className="mt-2 text-xs text-gray-600 bg-gray-50 rounded-lg p-2 border border-gray-100">
+                  <div className="mt-2 text-xs text-stone-600 bg-stone-50 rounded-lg px-3 py-2 border border-stone-100 leading-relaxed">
                     "{log.details.comment}"
                   </div>
                 )}
-                
+
                 {log.details?.note && (
-                   <p className="mt-1 text-[10px] text-gray-400 italic">
-                     {log.details.note}
-                   </p>
+                  <p className="mt-1 text-[10px] text-stone-400 italic">
+                    {log.details.note}
+                  </p>
                 )}
               </div>
             </div>

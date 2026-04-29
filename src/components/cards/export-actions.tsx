@@ -36,7 +36,6 @@ export function ExportActions({ cardId, status, mediaUrl, caption, canPublish }:
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      // Tentar pegar o nome original do arquivo da URL
       const filename = mediaUrl.split('/').pop() || 'media'
       a.download = filename
       document.body.appendChild(a)
@@ -57,48 +56,48 @@ export function ExportActions({ cardId, status, mediaUrl, caption, canPublish }:
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-6 space-y-6">
+    <div className="bg-white rounded-2xl shadow-card p-5 space-y-5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900">Exportação e Publicação</h3>
+        <p className="text-[11px] font-semibold text-stone-400 uppercase tracking-widest">Exportação e Publicação</p>
         {status === 'published' && (
-          <span className="flex items-center gap-1.5 text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md uppercase tracking-wider">
-            <Check size={12} /> Publicado
+          <span className="flex items-center gap-1.5 text-xs font-bold text-blue-700 bg-blue-50 ring-1 ring-blue-200 px-2.5 py-1 rounded-full uppercase tracking-wide">
+            <Check size={11} /> Publicado
           </span>
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <Button
           onClick={handleDownload}
           disabled={downloading}
           variant="outline"
-          className="flex items-center gap-2 justify-center py-6 border-gray-200 hover:bg-gray-50"
+          className="flex items-center gap-2 justify-center py-5"
         >
-          {downloading ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+          {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
           <span>Baixar Mídia</span>
         </Button>
 
         <Button
           onClick={handleCopyCaption}
           variant="outline"
-          className="flex items-center gap-2 justify-center py-6 border-gray-200 hover:bg-gray-50 transition-all"
+          className="flex items-center gap-2 justify-center py-5 transition-all"
         >
-          {copied ? <Check size={18} className="text-emerald-500" /> : <Copy size={18} />}
+          {copied ? <Check size={16} className="text-emerald-600" /> : <Copy size={16} />}
           <span>{copied ? 'Legenda Copiada!' : 'Copiar Legenda'}</span>
         </Button>
       </div>
 
       {status === 'approved' && canPublish && (
-        <div className="pt-2 border-t border-gray-100">
+        <div className="pt-1 border-t border-stone-100">
           <Button
             onClick={handlePublish}
             disabled={isPending}
-            className="w-full bg-gray-900 hover:bg-black text-white flex items-center gap-2 py-6 rounded-xl shadow-sm"
+            className="w-full flex items-center gap-2 py-5 rounded-xl"
           >
-            {isPending ? <Loader2 size={18} className="animate-spin" /> : <Share2 size={18} />}
+            {isPending ? <Loader2 size={16} className="animate-spin" /> : <Share2 size={16} />}
             Marcar como Publicado
           </Button>
-          <p className="text-[10px] text-gray-400 text-center mt-3 uppercase tracking-widest font-medium">
+          <p className="text-[10px] text-stone-400 text-center mt-3 uppercase tracking-widest font-medium">
             Mova para publicado apenas após postar no Instagram
           </p>
         </div>

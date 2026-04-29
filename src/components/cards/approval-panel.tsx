@@ -3,7 +3,6 @@
 import { useActionState, useState } from 'react'
 import { approvalAction, type ApprovalState } from '@/actions/approval'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 type ActionType = 'approve' | 'reject' | 'reservations'
 
@@ -15,7 +14,7 @@ export function ApprovalPanel({ cardId }: { cardId: string }) {
 
   if (state.success) {
     return (
-      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-medium">
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 font-semibold">
         Ação registrada com sucesso.
       </div>
     )
@@ -23,7 +22,6 @@ export function ApprovalPanel({ cardId }: { cardId: string }) {
 
   return (
     <div className="space-y-4">
-      {/* Botões de ação */}
       {!active && (
         <div className="flex flex-wrap gap-2">
           <Button onClick={() => setActive('approve')} size="sm">
@@ -38,14 +36,13 @@ export function ApprovalPanel({ cardId }: { cardId: string }) {
         </div>
       )}
 
-      {/* Formulário inline de feedback */}
       {active && active !== 'approve' && (
-        <form action={formAction} className="space-y-4 rounded-xl border border-gray-200 bg-gray-50 p-4">
+        <form action={formAction} className="space-y-4 rounded-xl border border-stone-200 bg-stone-50 p-5">
           <input type="hidden" name="card_id" value={cardId} />
           <input type="hidden" name="action_type" value={active} />
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="block text-sm font-medium text-stone-700">
               Justificativa <span className="text-red-500">*</span>
             </label>
             <textarea
@@ -53,23 +50,22 @@ export function ApprovalPanel({ cardId }: { cardId: string }) {
               required
               rows={3}
               placeholder="Descreva o que precisa ser corrigido…"
-              className="flex w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 resize-none"
+              className="flex w-full rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-sm text-stone-900 placeholder:text-stone-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stone-900/20 focus-visible:border-stone-400 resize-none transition-colors"
             />
           </div>
 
-          {/* RN02 — classificação da ressalva */}
           {active === 'reservations' && (
             <div className="space-y-2">
-              <p className="text-sm font-medium text-gray-700">
+              <p className="text-sm font-medium text-stone-700">
                 Tipo de ressalva <span className="text-red-500">*</span>
               </p>
               <div className="flex gap-4">
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input type="checkbox" name="type_caption" className="rounded" />
+                <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer hover:text-stone-900 transition-colors">
+                  <input type="checkbox" name="type_caption" className="rounded border-stone-300" />
                   Legenda
                 </label>
-                <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                  <input type="checkbox" name="type_media" className="rounded" />
+                <label className="flex items-center gap-2 text-sm text-stone-600 cursor-pointer hover:text-stone-900 transition-colors">
+                  <input type="checkbox" name="type_media" className="rounded border-stone-300" />
                   Mídia
                 </label>
               </div>
@@ -108,12 +104,11 @@ export function ApprovalPanel({ cardId }: { cardId: string }) {
         </form>
       )}
 
-      {/* Aprovação direta (sem form) */}
       {active === 'approve' && (
-        <form action={formAction} className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+        <form action={formAction} className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50 p-5">
           <input type="hidden" name="card_id" value={cardId} />
           <input type="hidden" name="action_type" value="approve" />
-          <p className="text-sm text-emerald-700">Confirmar aprovação deste card?</p>
+          <p className="text-sm text-emerald-700 font-medium">Confirmar aprovação deste card?</p>
 
           {state.error && (
             <p className="text-sm text-red-600">{state.error}</p>
