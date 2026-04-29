@@ -20,7 +20,14 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Learn More
+## 🎨 Design & UI/UX
+
+O projeto segue um sistema de design de alta fidelidade para garantir que as aprovações de mídia sejam precisas.
+
+- **Design System:** Documentação detalhada em [MASTER.md](./design-system/MASTER.md).
+- **Mockup Core:** Componente premium de pré-visualização localizado em `src/components/cards/instagram-mockup.tsx`.
+
+## 🚀 Tecnologias
 
 To learn more about Next.js, take a look at the following resources:
 

@@ -4,7 +4,12 @@
       "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
       "Bash(npx create-next-app@latest portal --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-turbopack)",
       "Bash(npm install *)",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(node -e \"const p = require\\('./node_modules/@supabase/supabase-js/package.json'\\); console.log\\(p.version\\)\")",
+      "Bash(npx supabase *)",
+      "Bash(npm run *)",
+      "Bash(npx @next/codemod@canary middleware-to-proxy .)",
+      "Bash(npx @next/codemod@canary middleware-to-proxy . --force)"
     ]
   }
 }

@@ -1,110 +1,204 @@
-export type UserRole = 'admin' | 'creator' | 'approver'
-
-export type CardStatus =
-  | 'draft'
-  | 'awaiting_approval'
-  | 'approved_with_reservations'
-  | 'rejected'
-  | 'approved'
-  | 'published'
-
-export type MediaType = 'image' | 'video'
-
-export type ReservationType = 'caption' | 'media' | 'both'
-
-export type InstagramFormat = 'feed' | 'story' | 'reels'
-
-export interface Database {
+export type Database = {
   public: {
     Tables: {
       profiles: {
-        Row: Profile
-        Insert: ProfileInsert
-        Update: Partial<ProfileInsert>
+        Row: {
+          id: string
+          email: string
+          name: string
+          role: 'admin' | 'creator' | 'approver'
+          avatar_url: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          email: string
+          name: string
+          role?: 'admin' | 'creator' | 'approver'
+          avatar_url?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          name?: string
+          role?: 'admin' | 'creator' | 'approver'
+          avatar_url?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
       media_cards: {
-        Row: MediaCard
-        Insert: MediaCardInsert
-        Update: Partial<MediaCardInsert>
+        Row: {
+          id: string
+          creator_id: string
+          title: string
+          caption: string
+          tags: string[]
+          tagged_accounts: string[]
+          suggested_at: string | null
+          status: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
+          reservation_type: 'caption' | 'media' | 'both' | null
+          reservation_comment: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          creator_id: string
+          title: string
+          caption?: string
+          tags?: string[]
+          tagged_accounts?: string[]
+          suggested_at?: string | null
+          status?: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
+          reservation_type?: 'caption' | 'media' | 'both' | null
+          reservation_comment?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          creator_id?: string
+          title?: string
+          caption?: string
+          tags?: string[]
+          tagged_accounts?: string[]
+          suggested_at?: string | null
+          status?: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
+          reservation_type?: 'caption' | 'media' | 'both' | null
+          reservation_comment?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       media_versions: {
-        Row: MediaVersion
-        Insert: MediaVersionInsert
-        Update: Partial<MediaVersionInsert>
+        Row: {
+          id: string
+          card_id: string
+          storage_path: string
+          media_type: 'image' | 'video'
+          version_number: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          card_id: string
+          storage_path: string
+          media_type: 'image' | 'video'
+          version_number?: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          card_id?: string
+          storage_path?: string
+          media_type?: 'image' | 'video'
+          version_number?: number
+          created_at?: string
+        }
+        Relationships: []
       }
       audit_logs: {
-        Row: AuditLog
-        Insert: AuditLogInsert
-        Update: never
+        Row: {
+          id: string
+          card_id: string
+          user_id: string
+          action: string
+          details: Record<string, unknown> | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          card_id: string
+          user_id: string
+          action: string
+          details?: Record<string, unknown> | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          card_id?: string
+          user_id?: string
+          action?: string
+          details?: Record<string, unknown> | null
+          created_at?: string
+        }
+        Relationships: []
       }
       invites: {
-        Row: Invite
-        Insert: InviteInsert
-        Update: Partial<InviteInsert>
+        Row: {
+          id: string
+          email: string
+          role: 'admin' | 'creator' | 'approver'
+          token: string
+          invited_by: string
+          expires_at: string
+          used_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          role?: 'admin' | 'creator' | 'approver'
+          token?: string
+          invited_by: string
+          expires_at?: string
+          used_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          email?: string
+          role?: 'admin' | 'creator' | 'approver'
+          token?: string
+          invited_by?: string
+          expires_at?: string
+          used_at?: string | null
+          created_at?: string
+        }
+        Relationships: []
       }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      [_ in never]: never
+    }
+    Enums: {
+      user_role: 'admin' | 'creator' | 'approver'
+      card_status: 'draft' | 'awaiting_approval' | 'approved_with_reservations' | 'rejected' | 'approved' | 'published'
+      media_type: 'image' | 'video'
+      reservation_type: 'caption' | 'media' | 'both'
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
 
-export interface Profile {
-  id: string
-  email: string
-  name: string
-  role: UserRole
-  avatar_url: string | null
-  created_at: string
-}
+// ---- Domain type aliases (derived from Database) ----
 
-export type ProfileInsert = Omit<Profile, 'created_at'>
+export type UserRole = Database['public']['Enums']['user_role']
+export type CardStatus = Database['public']['Enums']['card_status']
+export type MediaType = Database['public']['Enums']['media_type']
+export type ReservationType = Database['public']['Enums']['reservation_type']
 
-export interface MediaCard {
-  id: string
-  creator_id: string
-  title: string
-  caption: string
-  tags: string[]
-  tagged_accounts: string[]
-  suggested_at: string | null
-  status: CardStatus
-  reservation_type: ReservationType | null
-  reservation_comment: string | null
-  created_at: string
-  updated_at: string
-}
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
 
-export type MediaCardInsert = Omit<MediaCard, 'id' | 'created_at' | 'updated_at'>
+export type MediaCard = Database['public']['Tables']['media_cards']['Row']
+export type MediaCardInsert = Database['public']['Tables']['media_cards']['Insert']
 
-export interface MediaVersion {
-  id: string
-  card_id: string
-  storage_path: string
-  media_type: MediaType
-  version_number: number
-  created_at: string
-}
+export type MediaVersion = Database['public']['Tables']['media_versions']['Row']
+export type MediaVersionInsert = Database['public']['Tables']['media_versions']['Insert']
 
-export type MediaVersionInsert = Omit<MediaVersion, 'id' | 'created_at'>
+export type AuditLog = Database['public']['Tables']['audit_logs']['Row']
+export type AuditLogInsert = Database['public']['Tables']['audit_logs']['Insert']
 
-export interface AuditLog {
-  id: string
-  card_id: string
-  user_id: string
-  action: string
-  details: Record<string, unknown> | null
-  created_at: string
-}
+export type Invite = Database['public']['Tables']['invites']['Row']
+export type InviteInsert = Database['public']['Tables']['invites']['Insert']
 
-export type AuditLogInsert = Omit<AuditLog, 'id' | 'created_at'>
-
-export interface Invite {
-  id: string
-  email: string
-  role: UserRole
-  token: string
-  invited_by: string
-  expires_at: string
-  used_at: string | null
-  created_at: string
-}
-
-export type InviteInsert = Omit<Invite, 'id' | 'created_at'>
+export type InstagramFormat = 'feed' | 'story' | 'reels'
